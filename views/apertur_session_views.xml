@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Tree view                                                     -->
+    <!-- ============================================================ -->
+
+    <record id="apertur_session_view_tree" model="ir.ui.view">
+        <field name="name">apertur.session.tree</field>
+        <field name="model">apertur.session</field>
+        <field name="arch" type="xml">
+            <tree string="Apertur Sessions">
+                <field name="name" string="Session"/>
+                <field name="entity_ref"/>
+                <field name="res_model" optional="hide"/>
+                <field name="res_id" optional="hide"/>
+                <field name="mode"
+                       decoration-info="mode == 'contact'"
+                       decoration-warning="mode == 'internal'"
+                       decoration-primary="mode == 'public'"
+                       widget="badge"/>
+                <field name="state"
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'active'"
+                       decoration-muted="state in ('expired', 'closed')"
+                       decoration-primary="state == 'completed'"
+                       widget="badge"/>
+                <field name="is_sandbox" optional="hide"
+                       string="Sandbox"/>
+                <field name="max_images"/>
+                <field name="image_count" string="Received"/>
+                <field name="delivery_status" optional="show"/>
+                <field name="created_by"/>
+                <field name="create_date"/>
+                <field name="expire_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Form view                                                     -->
+    <!-- ============================================================ -->
+
+    <record id="apertur_session_view_form" model="ir.ui.view">
+        <field name="name">apertur.session.form</field>
+        <field name="model">apertur.session</field>
+        <field name="arch" type="xml">
+            <form string="Apertur Session">
+                <header>
+                    <button name="action_send_link"
+                            string="Send Link"
+                            type="object"
+                            class="btn-primary"
+                            attrs="{'invisible': [('state', 'not in', ['active'])]}"/>
+                    <button name="action_refresh_delivery_status"
+                            string="Refresh Status"
+                            type="object"
+                            attrs="{'invisible': [('state', 'in', ['draft'])]}"/>
+                    <button name="action_close_session"
+                            string="Close Session"
+                            type="object"
+                            attrs="{'invisible': [('state', 'not in', ['active', 'draft'])]}"
+                            confirm="Close this session? The upload link will no longer accept new photos."/>
+                    <button name="action_expire"
+                            string="Expire"
+                            type="object"
+                            attrs="{'invisible': [('state', '!=', 'active')]}"
+                            confirm="Are you sure you want to expire this session?"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active,completed,expired,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <!-- Sandbox badge -->
+                        <div class="alert alert-warning py-1 px-2 mb-2"
+                             role="alert"
+                             attrs="{'invisible': [('is_sandbox', '=', False)]}">
+                            <i class="fa fa-flask me-1"/>
+                            <span>Sandbox mode</span>
+                        </div>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                        <h3>
+                            <field name="mode" widget="badge"
+                                   decoration-info="mode == 'contact'"
+                                   decoration-warning="mode == 'internal'"
+                                   decoration-primary="mode == 'public'"/>
+                            <field name="is_sandbox" invisible="1"/>
+                        </h3>
+                    </div>
+                    <group>
+                        <group string="Session Details">
+                            <field name="upload_url" widget="url"/>
+                            <field name="qr_url" widget="url"/>
+                            <field name="max_images"/>
+                            <field name="image_count"/>
+                            <field name="delivery_status" readonly="1"/>
+                        </group>
+                        <group string="Linked Record">
+                            <field name="entity_ref"/>
+                            <field name="res_model"/>
+                            <field name="res_id"/>
+                            <field name="mode"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="created_by"/>
+                            <field name="create_date"/>
+                            <field name="expire_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Attachments" name="attachments">
+                            <field name="attachment_ids" readonly="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="mimetype"/>
+                                    <field name="file_size"/>
+                                    <field name="create_date"/>
+                                    <field name="description"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Delivery Details" name="delivery_details"
+                              attrs="{'invisible': [('delivery_details', '=', False)]}">
+                            <field name="delivery_details" readonly="1"
+                                   widget="ace" options="{'mode': 'json'}"/>
+                        </page>
+                    </notebook>
+                    <!-- Apertur capture widget (iframe) -->
+                    <div attrs="{'invisible': [('state', '!=', 'active')]}">
+                        <field name="name" invisible="1" class="apertur_session_uuid"/>
+                        <div class="apertur_widget_container"
+                             style="width:100%; min-height:480px; border:1px solid #dee2e6; border-radius:4px; overflow:hidden;">
+                            <!-- The OWL AperturCaptureWidget mounts here -->
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Search view                                                   -->
+    <!-- ============================================================ -->
+
+    <record id="apertur_session_view_search" model="ir.ui.view">
+        <field name="name">apertur.session.search</field>
+        <field name="model">apertur.session</field>
+        <field name="arch" type="xml">
+            <search string="Apertur Sessions">
+                <field name="name"/>
+                <field name="entity_ref"/>
+                <field name="res_model"/>
+                <field name="created_by"/>
+                <field name="mode"/>
+                <filter name="filter_active" string="Active"
+                        domain="[('state', '=', 'active')]"/>
+                <filter name="filter_completed" string="Completed"
+                        domain="[('state', '=', 'completed')]"/>
+                <filter name="filter_expired" string="Expired"
+                        domain="[('state', '=', 'expired')]"/>
+                <filter name="filter_closed" string="Closed"
+                        domain="[('state', '=', 'closed')]"/>
+                <separator/>
+                <filter name="filter_mode_contact" string="Contact Mode"
+                        domain="[('mode', '=', 'contact')]"/>
+                <filter name="filter_mode_internal" string="Internal Mode"
+                        domain="[('mode', '=', 'internal')]"/>
+                <filter name="filter_mode_public" string="Public Mode"
+                        domain="[('mode', '=', 'public')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="groupby_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="groupby_mode" string="Mode"
+                            context="{'group_by': 'mode'}"/>
+                    <filter name="groupby_model" string="Model"
+                            context="{'group_by': 'res_model'}"/>
+                    <filter name="groupby_created_by" string="Created By"
+                            context="{'group_by': 'created_by'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Action & Menu                                                 -->
+    <!-- ============================================================ -->
+
+    <record id="apertur_session_action" model="ir.actions.act_window">
+        <field name="name">Apertur Sessions</field>
+        <field name="res_model">apertur.session</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="apertur_session_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Apertur sessions yet
+            </p>
+            <p>
+                Create a session from a contact, task, or ticket to start
+                collecting photos.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="apertur_menu_root"
+              name="Apertur"
+              web_icon="apertur_connect,static/description/icon.png"
+              sequence="90"/>
+
+    <menuitem id="apertur_menu_sessions"
+              name="Sessions"
+              parent="apertur_menu_root"
+              action="apertur_session_action"
+              sequence="10"/>
+
+</odoo>

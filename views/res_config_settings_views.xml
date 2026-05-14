@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_apertur" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.apertur</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block" data-string="Apertur" string="Apertur" data-key="apertur_connect">
+                    <h2>Apertur - Photo Collection</h2>
+
+                    <div class="alert alert-warning"
+                         role="alert"
+                         attrs="{'invisible': [('apertur_is_sandbox', '=', False)]}">
+                        <i class="fa fa-flask me-2"/>
+                        <strong>Sandbox mode active.</strong>
+                        Using test environment — images will be watermarked.
+                    </div>
+                    <field name="apertur_is_sandbox" invisible="1"/>
+
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <label for="apertur_api_key"/>
+                                <div class="text-muted">
+                                    Your Apertur API key. Obtain one from
+                                    <a href="https://apertur.ca" target="_blank">apertur.ca</a>.
+                                </div>
+                                <div class="content-group">
+                                    <div class="mt8">
+                                        <field name="apertur_api_key"
+                                               placeholder="aptr_live_..."
+                                               password="True"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <label for="apertur_webhook_secret"/>
+                                <div class="text-muted">
+                                    Secret used to verify incoming webhook signatures (HMAC-SHA256).
+                                </div>
+                                <div class="content-group">
+                                    <div class="mt8">
+                                        <field name="apertur_webhook_secret"
+                                               password="True"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <label for="apertur_base_url"/>
+                                <div class="text-muted">
+                                    Override the API base URL. Leave empty to auto-detect
+                                    from the key prefix.
+                                </div>
+                                <div class="content-group">
+                                    <div class="mt8">
+                                        <field name="apertur_base_url"
+                                               placeholder="https://api.aptr.ca"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <label for="apertur_default_max_images"/>
+                                <div class="text-muted">
+                                    Default max images per session.
+                                </div>
+                                <div class="content-group">
+                                    <div class="mt8">
+                                        <field name="apertur_default_max_images"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <label for="apertur_enabled_models"/>
+                                <div class="text-muted">
+                                    Comma-separated list of models where Apertur capture
+                                    is enabled (e.g. res.partner,project.task).
+                                </div>
+                                <div class="content-group">
+                                    <div class="mt8">
+                                        <field name="apertur_enabled_models"
+                                               placeholder="res.partner"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="mt32">Webhook Endpoint</h3>
+                    <div class="row o_settings_container">
+                        <div class="col-12 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <div class="text-muted">
+                                    Configure the following URL as a webhook destination in your
+                                    Apertur dashboard:
+                                </div>
+                                <div class="mt8">
+                                    <field name="apertur_webhook_url" readonly="1" widget="CopyClipboardChar"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

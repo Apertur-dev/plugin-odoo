@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="apertur_connect.AperturCaptureWidget" owl="1">
+        <div class="apertur_capture_widget">
+            <!-- Sandbox indicator bar -->
+            <t t-if="state.isSandbox">
+                <div class="alert alert-warning py-1 px-2 mb-0 text-center small"
+                     role="alert">
+                    <i class="fa fa-flask me-1"/>
+                    <t t-esc="labels.sandbox"/>
+                </div>
+            </t>
+
+            <!-- Loading state -->
+            <t t-if="state.loading">
+                <div class="text-center p-4">
+                    <i class="fa fa-spinner fa-spin fa-2x text-muted"/>
+                    <p class="text-muted mt-2">
+                        <t t-esc="labels.loading"/>
+                    </p>
+                </div>
+            </t>
+
+            <!-- Error state -->
+            <t t-elif="state.error">
+                <div class="alert alert-warning m-3" role="alert">
+                    <i class="fa fa-exclamation-triangle me-2"/>
+                    <t t-esc="state.error"/>
+                </div>
+            </t>
+
+            <!-- Widget iframe -->
+            <t t-else="">
+                <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-light border-bottom">
+                    <span class="text-muted">
+                        <i class="fa fa-camera me-1"/>
+                        <t t-esc="labels.header"/>
+                    </span>
+                    <span class="badge bg-primary" t-if="state.imageCount > 0">
+                        <t t-esc="state.imageCount"/>
+                        <span class="ms-1">
+                            <t t-esc="labels.photosReceived"/>
+                        </span>
+                    </span>
+                </div>
+                <iframe t-ref="aperturIframe"
+                        t-att-src="state.iframeUrl"
+                        style="width:100%; height:460px; border:none;"
+                        allow="camera; clipboard-write"
+                        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                        loading="lazy"/>
+            </t>
+        </div>
+    </t>
+
+</templates>
