@@ -184,9 +184,18 @@ class AperturSession(models.Model):
         base_url = self._get_base_url()
         headers = self._get_api_headers()
 
+        destination_id = ICP.get_param('apertur.destination_id', default='')
+        if not destination_id:
+            raise UserError(_(
+                'Apertur Destination ID is not configured. '
+                'Go to Settings > Apertur, create a destination of type '
+                '"odoo" in the Apertur dashboard, and paste its ID.'
+            ))
+
         payload = {
             'max_images': max_images,
             'tags': [entity_ref],
+            'destination_ids': [destination_id],
             'metadata': {
                 'odoo': {
                     'model': res_model,
