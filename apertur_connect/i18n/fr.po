@@ -1,0 +1,270 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#  * apertur_connect
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-04-14 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: apertur_connect
+#: model:ir.model,name:apertur_connect.model_apertur_session
+msgid "Apertur Photo Session"
+msgstr "Session photo Apertur"
+
+#. module: apertur_connect
+#: model:ir.model.fields,field_description:apertur_connect.field_apertur_session__name
+msgid "Session UUID"
+msgstr "UUID de session"
+
+#. module: apertur_connect
+#: model:ir.model.fields,field_description:apertur_connect.field_apertur_session__upload_url
+msgid "Upload URL"
+msgstr "URL de televersement"
+
+#. module: apertur_connect
+#: model:ir.model.fields,field_description:apertur_connect.field_apertur_session__qr_url
+msgid "QR Code URL"
+msgstr "URL du code QR"
+
+#. module: apertur_connect
+#: model:ir.model.fields,field_description:apertur_connect.field_apertur_session__mode
+msgid "Mode"
+msgstr "Mode"
+
+#. module: apertur_connect
+#: model:ir.model.fields.selection,name:apertur_connect.selection__apertur_session__mode__contact
+msgid "Send to Contact"
+msgstr "Envoyer au contact"
+
+#. module: apertur_connect
+#: model:ir.model.fields.selection,name:apertur_connect.selection__apertur_session__mode__internal
+msgid "Internal Attachment"
+msgstr "Piece jointe interne"
+
+#. module: apertur_connect
+#: model:ir.model.fields.selection,name:apertur_connect.selection__apertur_session__mode__public
+msgid "Public Message"
+msgstr "Message public"
+
+#. module: apertur_connect
+#: model:ir.model.fields.selection,name:apertur_connect.selection__apertur_session__state__draft
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: apertur_connect
+#: model:ir.model.fields.selection,name:apertur_connect.selection__apertur_session__state__active
+msgid "Active"
+msgstr "Active"
+
+#. module: apertur_connect
+#: model:ir.model.fields.selection,name:apertur_connect.selection__apertur_session__state__completed
+msgid "Completed"
+msgstr "Terminee"
+
+#. module: apertur_connect
+#: model:ir.model.fields.selection,name:apertur_connect.selection__apertur_session__state__expired
+msgid "Expired"
+msgstr "Expiree"
+
+#. module: apertur_connect
+#: model:ir.model.fields.selection,name:apertur_connect.selection__apertur_session__state__closed
+msgid "Closed"
+msgstr "Fermee"
+
+#. module: apertur_connect
+#: model_terms:ir.ui.view,arch_db:apertur_connect.apertur_session_view_form
+msgid "Send Link"
+msgstr "Envoyer le lien"
+
+#. module: apertur_connect
+#: model_terms:ir.ui.view,arch_db:apertur_connect.apertur_session_view_form
+msgid "Refresh Status"
+msgstr "Actualiser le statut"
+
+#. module: apertur_connect
+#: model_terms:ir.ui.view,arch_db:apertur_connect.apertur_session_view_form
+msgid "Close Session"
+msgstr "Fermer la session"
+
+#. module: apertur_connect
+#: model_terms:ir.ui.view,arch_db:apertur_connect.apertur_session_view_form
+msgid "Close this session? The upload link will no longer accept new photos."
+msgstr "Fermer cette session? Le lien de televersement n'acceptera plus de nouvelles photos."
+
+#. module: apertur_connect
+#: model_terms:ir.ui.view,arch_db:apertur_connect.apertur_session_view_form
+msgid "Are you sure you want to expire this session?"
+msgstr "Etes-vous sur de vouloir expirer cette session?"
+
+#. module: apertur_connect
+#: model_terms:ir.ui.view,arch_db:apertur_connect.apertur_session_view_form
+msgid "Sandbox mode"
+msgstr "Mode bac a sable"
+
+#. module: apertur_connect
+#: model:ir.model.fields,field_description:apertur_connect.field_apertur_session__is_sandbox
+msgid "Sandbox"
+msgstr "Bac a sable"
+
+#. module: apertur_connect
+#: model:ir.model.fields,field_description:apertur_connect.field_apertur_session__delivery_status
+msgid "Last Delivery Status"
+msgstr "Dernier statut de livraison"
+
+#. module: apertur_connect
+#: model:ir.model.fields,field_description:apertur_connect.field_apertur_session__delivery_details
+msgid "Delivery Details"
+msgstr "Details de livraison"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "Apertur API key is not configured. Go to Settings > Apertur to set it up."
+msgstr "La cle API Apertur n'est pas configuree. Allez dans Parametres > Apertur pour la configurer."
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "Failed to create Apertur session. Please check your API key and network connection.\n\n%s"
+msgstr "Impossible de creer la session Apertur. Verifiez votre cle API et votre connexion reseau.\n\n%s"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "This session has no upload URL."
+msgstr "Cette session n'a pas d'URL de televersement."
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "No partner specified to receive the upload link."
+msgstr "Aucun contact specifie pour recevoir le lien de televersement."
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "The specified partner does not exist."
+msgstr "Le contact specifie n'existe pas."
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "<p>Upload photos here: <a href=\"%(url)s\" target=\"_blank\">%(url)s</a></p>"
+msgstr "<p>Televersez vos photos ici : <a href=\"%(url)s\" target=\"_blank\">%(url)s</a></p>"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "This session has no UUID yet."
+msgstr "Cette session n'a pas encore d'UUID."
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "Failed to refresh delivery status.\n\n%s"
+msgstr "Impossible d'actualiser le statut de livraison.\n\n%s"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "%(failed)s failed, %(delivered)s delivered, %(pending)s pending (of %(total)s)"
+msgstr "%(failed)s echouees, %(delivered)s livrees, %(pending)s en attente (sur %(total)s)"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "%(delivered)s delivered, %(pending)s pending (of %(total)s)"
+msgstr "%(delivered)s livrees, %(pending)s en attente (sur %(total)s)"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "%(delivered)s delivered"
+msgstr "%(delivered)s livrees"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/apertur_session.py:0
+#, python-format
+msgid "No images yet"
+msgstr "Aucune image pour le moment"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/models/ir_attachment_mixin.py:0
+#, python-format
+msgid "Apertur Session"
+msgstr "Session Apertur"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/controllers/webhook.py:0
+#, python-format
+msgid "<p>Photo received via Apertur</p>"
+msgstr "<p>Photo recue via Apertur</p>"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/controllers/webhook.py:0
+#, python-format
+msgid "Download failed for %s"
+msgstr "Echec du telechargement de %s"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/controllers/webhook.py:0
+#, python-format
+msgid "Last image delivered: %s"
+msgstr "Derniere image livree : %s"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/static/src/js/apertur_widget.js:0
+#, javascript-format
+msgid "Loading Apertur widget..."
+msgstr "Chargement du widget Apertur..."
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/static/src/js/apertur_widget.js:0
+#, javascript-format
+msgid "Apertur Photo Collection"
+msgstr "Collecte de photos Apertur"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/static/src/js/apertur_widget.js:0
+#, javascript-format
+msgid "photo(s) received"
+msgstr "photo(s) recue(s)"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/static/src/js/apertur_widget.js:0
+#, javascript-format
+msgid "Photo received"
+msgstr "Photo recue"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/static/src/js/apertur_widget.js:0
+#, javascript-format
+msgid "Photo collection complete!"
+msgstr "Collecte de photos terminee!"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/static/src/js/apertur_widget.js:0
+#, javascript-format
+msgid "Apertur widget error"
+msgstr "Erreur du widget Apertur"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/static/src/js/apertur_widget.js:0
+#, javascript-format
+msgid "Failed to load widget"
+msgstr "Echec du chargement du widget"
+
+#. module: apertur_connect
+#: code:addons/apertur_connect/static/src/js/apertur_widget.js:0
+#, javascript-format
+msgid "No session UUID available."
+msgstr "Aucun UUID de session disponible."

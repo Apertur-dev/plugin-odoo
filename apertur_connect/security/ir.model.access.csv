@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_apertur_session_user,apertur.session user,model_apertur_session,base.group_user,1,1,1,0
+access_apertur_session_manager,apertur.session manager,model_apertur_session,base.group_system,1,1,1,1
