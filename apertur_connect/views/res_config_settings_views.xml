@@ -59,6 +59,28 @@
                         <div class="col-12 col-lg-6 o_setting_box">
                             <div class="o_setting_left_pane"/>
                             <div class="o_setting_right_pane">
+                                <label for="apertur_destination_id"/>
+                                <div class="text-muted">
+                                    Required. UUID of the Apertur destination of type
+                                    <code>odoo</code> that will receive photos.
+                                    Create the destination from your Apertur dashboard
+                                    (Destinations &gt; Add destination &gt; Odoo) and
+                                    paste its ID here.
+                                </div>
+                                <div class="content-group">
+                                    <div class="mt8">
+                                        <field name="apertur_destination_id"
+                                               placeholder="00000000-0000-0000-0000-000000000000"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
                                 <label for="apertur_base_url"/>
                                 <div class="text-muted">
                                     Override the API base URL. Leave empty to auto-detect
