@@ -13,6 +13,14 @@ class ResConfigSettings(models.TransientModel):
         help='Your Apertur API key (starts with aptr_live_ or aptr_test_).',
         config_parameter='apertur.api_key',
     )
+    apertur_destination_id = fields.Char(
+        string='Destination ID',
+        help='Required. UUID of the Apertur destination of type \'odoo\' that '
+             'will receive uploaded photos. Create the destination from the '
+             'Apertur dashboard (Destinations > Add destination > Odoo) and '
+             'paste its ID here.',
+        config_parameter='apertur.destination_id',
+    )
     apertur_base_url = fields.Char(
         string='API Base URL',
         help='Override the Apertur API base URL. '
