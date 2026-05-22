@@ -1,0 +1,142 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan">Apertur Photo Collection</h2>
+            <h3 class="oe_slogan" style="font-weight:300;">Collect photos from any mobile device, straight into Odoo.</h3>
+            <p class="oe_mt32 text-center">
+                Generate a QR code from any contact, task or ticket. The recipient scans it,
+                uploads photos from their phone, and the images land on the record automatically &mdash;
+                with chatter notification and signed-webhook delivery.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan">Free tier available</h2>
+            <p class="oe_mt32 text-center">
+                Apertur is a SaaS service. Start for free, upgrade only when you need more.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <div class="oe_centeralign">
+                <h3>Free plan</h3>
+                <ul style="list-style:none; padding:0;">
+                    <li>15 sessions per month</li>
+                    <li>10 images per session</li>
+                    <li>5 MB max image size</li>
+                    <li>12-hour session expiry</li>
+                    <li>1 active destination</li>
+                </ul>
+                <p><em>No credit card required.</em></p>
+            </div>
+        </div>
+        <div class="oe_span6">
+            <div class="oe_centeralign">
+                <h3>Paid plans (from Starter)</h3>
+                <ul style="list-style:none; padding:0;">
+                    <li>Up to 1500+ sessions per month</li>
+                    <li>30&ndash;200 images per session</li>
+                    <li>Up to 50 MB &amp; 25k px resolution</li>
+                    <li>Password-protected sessions</li>
+                    <li>Custom branding &amp; end-to-end encryption (Business/Unlimited)</li>
+                </ul>
+                <p><em>See <a href="https://apertur.ca/pricing">apertur.ca/pricing</a> for details.</em></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan">How it works</h2>
+        </div>
+        <div class="oe_span4">
+            <div class="oe_centeralign">
+                <h4>1. Open a record</h4>
+                <p>Contact, task or helpdesk ticket &mdash; click the <strong>Apertur</strong> tab.</p>
+            </div>
+        </div>
+        <div class="oe_span4">
+            <div class="oe_centeralign">
+                <h4>2. Share the QR</h4>
+                <p>Apertur generates a one-time upload session bound to that record.</p>
+            </div>
+        </div>
+        <div class="oe_span4">
+            <div class="oe_centeralign">
+                <h4>3. Receive photos</h4>
+                <p>Images are attached automatically and a message is posted to chatter.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan">Key features</h2>
+        </div>
+        <div class="oe_span6">
+            <ul>
+                <li>QR-based photo upload from any mobile browser, no app required</li>
+                <li>Works on contacts, tasks, helpdesk tickets and any custom model</li>
+                <li>Embedded OWL widget directly inside the record form</li>
+                <li>Sandbox indicator when using test API keys (<code>aptr_test_*</code>)</li>
+            </ul>
+        </div>
+        <div class="oe_span6">
+            <ul>
+                <li>HMAC-SHA256 signed webhook (<code>/apertur/webhook</code>)</li>
+                <li>Multi-mode sessions: contact / internal / public</li>
+                <li>English, French and Spanish translations included</li>
+                <li>Dark-mode aware widget</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan">Configuration</h2>
+            <ol>
+                <li>Create an Apertur account at <a href="https://apertur.ca">apertur.ca</a> (free tier available).</li>
+                <li>In Odoo: <strong>Settings &rarr; Apertur</strong>, paste your API key (<code>aptr_live_*</code> or <code>aptr_test_*</code>) and a webhook secret.</li>
+                <li>Copy the webhook URL shown in settings and register it as a destination in your Apertur dashboard.</li>
+                <li>You're done &mdash; open any contact and click <strong>Collect Photos</strong>.</li>
+            </ol>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan">Data &amp; privacy</h2>
+            <p>
+                This module is a thin integration with Apertur's SaaS API. When you open a session,
+                the module sends the entity reference (model + record id) and your API key to
+                <code>https://api.apertur.ca</code>. Photos uploaded by the recipient are temporary stored
+                on Apertur's infrastructure, delivered to your Odoo instance via signed webhook,
+                and immediatly deleted. You retain full ownership of your data. No analytics or telemetry are sent from this module.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h2 class="oe_slogan">Support</h2>
+            <p class="text-center">
+                Questions, bug reports or feature requests:
+                <a href="https://apertur.ca/contact">apertur.ca/contact</a><br/>
+                Documentation: <a href="https://apertur.ca/docs/plugins/odoo">apertur.ca/docs/plugins/odoo</a>
+            </p>
+        </div>
+    </div>
+</section>
