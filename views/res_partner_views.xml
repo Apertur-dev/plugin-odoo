@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_partner_view_form_apertur" model="ir.ui.view">
+        <field name="name">res.partner.form.apertur</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[last()]" position="after">
+                <page string="Apertur" name="apertur">
+                    <div class="oe_button_box mb16">
+                        <button name="action_apertur_capture_contact"
+                                string="Request from Contact"
+                                type="object"
+                                class="btn-primary"
+                                icon="fa-paper-plane"
+                                help="Create a session and notify the contact via chatter."/>
+                        <button name="action_apertur_capture_internal"
+                                string="Upload as Internal Note"
+                                type="object"
+                                class="btn-secondary"
+                                icon="fa-lock"
+                                help="Create a session; uploaded images will be attached as internal notes."/>
+                        <button name="action_apertur_capture_public"
+                                string="Upload as Public Message"
+                                type="object"
+                                class="btn-secondary"
+                                icon="fa-camera"
+                                help="Create a session; uploaded images will be attached as public chatter messages."/>
+                    </div>
+
+                    <!-- Active sessions -->
+                    <group string="Active Sessions">
+                        <field name="apertur_session_ids" nolabel="1"
+                               readonly="1">
+                            <tree string="Sessions"
+                                  decoration-success="state == 'active'"
+                                  decoration-muted="state in ('expired', 'closed')"
+                                  decoration-primary="state == 'completed'">
+                                <field name="name" string="Session"/>
+                                <field name="mode" widget="badge"/>
+                                <field name="state" widget="badge"/>
+                                <field name="image_count" string="Photos"/>
+                                <field name="max_images"/>
+                                <field name="create_date"/>
+                                <field name="expire_date"/>
+                                <field name="upload_url" widget="url"
+                                       string="Link"/>
+                            </tree>
+                        </field>
+                    </group>
+
+                    <!-- Photos received via Apertur -->
+                    <group string="Photos">
+                        <field name="apertur_image_count"
+                               string="Total photos received"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
