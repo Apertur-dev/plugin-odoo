@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime, timezone
 
 import requests
 
@@ -213,11 +214,13 @@ class AperturSession(models.Model):
                 timeout=15,
             )
             resp.raise_for_status()
+        except requests.HTTPError as exc:
+            self._raise_session_api_error(exc, destination_id)
         except requests.RequestException as exc:
             _logger.error('Apertur API error: %s', exc)
             raise UserError(_(
-                'Failed to create Apertur session. '
-                'Please check your API key and network connection.\n\n%s'
+                'Could not reach Apertur. Please check your network '
+                'connection and the API base URL.\n\n%s'
             ) % exc) from exc
 
         data = resp.json()
@@ -232,10 +235,87 @@ class AperturSession(models.Model):
             'state': 'active',
             'mode': mode,
             'max_images': max_images,
-            'expire_date': data.get('expires_at'),
+            'expire_date': self._parse_api_datetime(data.get('expires_at')),
         })
 
         return session
+
+    @staticmethod
+    def _parse_api_datetime(value):
+        """Parse an ISO-8601 timestamp from the Apertur API (e.g.
+        ``2026-06-12T09:44:41.919Z``) into a naive UTC ``datetime`` suitable
+        for an Odoo Datetime field, which expects ``%Y-%m-%d %H:%M:%S`` with
+        no timezone. Returns ``False`` when empty or unparseable.
+        """
+        if not value:
+            return False
+        text = value.strip()
+        try:
+            # fromisoformat handles fractional seconds and offsets; it does
+            # not accept a trailing "Z" before Python 3.11, so normalise it.
+            dt = datetime.fromisoformat(text.replace('Z', '+00:00'))
+        except ValueError:
+            # Best-effort fallback: drop the "T", fractional seconds and any
+            # offset, then parse as a naive (UTC) datetime.
+            base = text.replace('T', ' ').rstrip('Z')
+            base = base.split('.', 1)[0].split('+', 1)[0].strip()
+            try:
+                return datetime.strptime(base, '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                _logger.warning(
+                    'Apertur: could not parse expires_at %r', value,
+                )
+                return False
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt
+
+    @staticmethod
+    def _raise_session_api_error(exc, destination_id):
+        """Translate an HTTP error from the session-creation API into a
+        specific :class:`UserError`, distinguishing API-key problems from
+        destination problems (mirrors how delivery destinations surface
+        auth vs. config errors separately).
+        """
+        response = exc.response
+        status = response.status_code if response is not None else None
+
+        message = ''
+        try:
+            message = (response.json() or {}).get('message', '') if response is not None else ''
+        except (ValueError, AttributeError):
+            message = response.text if response is not None else ''
+
+        _logger.error(
+            'Apertur session API error (HTTP %s): %s', status, message or exc,
+        )
+
+        # 401/403 → the API key is missing, revoked, or for the wrong
+        # environment.
+        if status in (401, 403):
+            raise UserError(_(
+                'Apertur rejected your API key (HTTP %(status)s). Check the '
+                'API key in Settings > Apertur — make sure it is active and '
+                'matches the right environment (live vs. test).\n\n%(message)s'
+            ) % {'status': status, 'message': message}) from exc
+
+        # A validation error mentioning the destination → the configured
+        # Destination ID is wrong, inactive, or not of type "odoo".
+        if status in (400, 404, 422) and 'destination' in (message or '').lower():
+            raise UserError(_(
+                'Apertur rejected the Destination ID (HTTP %(status)s). Open '
+                'Settings > Apertur and verify the Destination ID matches an '
+                'active destination of type "odoo" in your Apertur dashboard '
+                '(currently configured: %(dest)s).\n\n%(message)s'
+            ) % {
+                'status': status,
+                'dest': destination_id or _('not set'),
+                'message': message,
+            }) from exc
+
+        raise UserError(_(
+            'Failed to create Apertur session (HTTP %(status)s).\n\n%(message)s'
+        ) % {'status': status, 'message': message or str(exc)}) from exc
 
     def action_send_link(self, partner_id=None):
         """Send the upload link to a partner via a chatter message.
