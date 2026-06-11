@@ -1,4 +1,4 @@
-from odoo import _, fields, models
+from odoo import fields, models
 
 
 class AperturCaptureMixin(models.AbstractModel):
@@ -48,21 +48,9 @@ class AperturCaptureMixin(models.AbstractModel):
         :param str mode: one of ``contact``, ``internal``, ``public``.
         """
         self.ensure_one()
-        if mode not in ('contact', 'internal', 'public'):
-            mode = 'contact'
-        session = self.env['apertur.session'].action_create_session(
-            res_model=self._name,
-            res_id=self.id,
-            mode=mode,
+        return self.env['apertur.session'].action_capture_for(
+            self._name, self.id, mode,
         )
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Apertur Session'),
-            'res_model': 'apertur.session',
-            'res_id': session.id,
-            'view_mode': 'form',
-            'target': 'new',
-        }
 
     def action_apertur_capture_contact(self):
         return self.action_apertur_capture(mode='contact')

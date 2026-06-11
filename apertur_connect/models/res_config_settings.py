@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 
 class ResConfigSettings(models.TransientModel):
@@ -92,10 +92,64 @@ class ResConfigSettings(models.TransientModel):
 
     def set_values(self):
         super().set_values()
-        names = ','.join(sorted(self.apertur_enabled_model_ids.mapped('model')))
+        model_names = sorted(self.apertur_enabled_model_ids.mapped('model'))
         self.env['ir.config_parameter'].sudo().set_param(
-            'apertur.enabled_models', names,
+            'apertur.enabled_models', ','.join(model_names),
         )
+        self._sync_apertur_capture_bindings(model_names)
+
+    # Marker stored in the generated server actions' code, so we can find and
+    # refresh exactly the ones we own without touching user-made actions.
+    _APERTUR_BINDING_SENTINEL = '# apertur:capture-binding'
+
+    def _sync_apertur_capture_bindings(self, model_names):
+        """Generate one "Action menu" entry per mode on every enabled model,
+        so capturing photos works on any *installed* model the admin checks —
+        without adding a hard dependency on those modules.
+
+        Implementation: model-bound ``ir.actions.server`` (binding_type
+        ``action``) appear in the cog/Action dropdown of the model's list &
+        form views. We regenerate them on every save (drop ours, recreate the
+        desired set). ``res.partner`` is skipped — it keeps its dedicated form
+        buttons.
+        """
+        Server = self.env['ir.actions.server'].sudo()
+        sentinel = self._APERTUR_BINDING_SENTINEL
+
+        # Drop the previously generated bindings.
+        Server.search([
+            ('state', '=', 'code'), ('code', 'like', sentinel),
+        ]).unlink()
+
+        # Only bind to installed models (present in ir.model) that carry a
+        # chatter; res.partner is handled by its native buttons.
+        models = self.env['ir.model'].sudo().search([
+            ('model', 'in', model_names),
+            ('is_mail_thread', '=', True),
+            ('model', '!=', 'res.partner'),
+        ])
+        modes = [
+            ('contact', _('Apertur: Request from Contact')),
+            ('internal', _('Apertur: Upload as Internal Note')),
+            ('public', _('Apertur: Upload as Public Message')),
+        ]
+        for model in models:
+            for mode, name in modes:
+                code = (
+                    "%(sentinel)s\n"
+                    "if records:\n"
+                    "    _r = records[:1]\n"
+                    "    action = env['apertur.session'].action_capture_for("
+                    "_r._name, _r.id, '%(mode)s')\n"
+                ) % {'sentinel': sentinel, 'mode': mode}
+                Server.create({
+                    'name': name,
+                    'model_id': model.id,
+                    'binding_model_id': model.id,
+                    'binding_type': 'action',
+                    'state': 'code',
+                    'code': code,
+                })
 
     @api.model
     def get_apertur_base_url(self):

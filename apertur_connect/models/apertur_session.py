@@ -592,6 +592,31 @@ class AperturSession(models.Model):
         target.message_post(**kwargs)
 
     # ------------------------------------------------------------------
+    # Capture entry point (shared by res.partner buttons + bound actions)
+    # ------------------------------------------------------------------
+
+    @api.model
+    def action_capture_for(self, res_model, res_id, mode='contact'):
+        """Create a capture session for an arbitrary record and return an
+        action that opens the session form (with its upload widget).
+
+        Used both by the res.partner form buttons and by the model-bound
+        server actions generated from the "Enabled Models" setting, so any
+        installed model can drive a capture without a code change.
+        """
+        if mode not in ('contact', 'internal', 'public'):
+            mode = 'contact'
+        session = self.action_create_session(res_model, int(res_id), mode=mode)
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Apertur Session'),
+            'res_model': 'apertur.session',
+            'res_id': session.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
+    # ------------------------------------------------------------------
     # Navigation
     # ------------------------------------------------------------------
 
