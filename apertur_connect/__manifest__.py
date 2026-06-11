@@ -1,6 +1,6 @@
 {
     'name': 'Apertur Photo Collection',
-    'version': '18.0.1.1.2',
+    'version': '18.0.1.1.3',
     'category': 'Tools',
     'summary': 'Collect photos from mobile devices via QR code (Apertur).',
     'description': """

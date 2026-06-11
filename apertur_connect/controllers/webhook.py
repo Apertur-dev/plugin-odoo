@@ -179,13 +179,24 @@ class AperturWebhookController(http.Controller):
             )
             return {'status': 'error', 'message': 'Record not found'}
 
+        # Idempotency: if this image was already attached (e.g. by a manual
+        # "Refresh Status" reconcile or a duplicate webhook), do nothing.
+        desc = 'apertur:%s' % data.get('id', '')
+        already = request.env['ir.attachment'].sudo().search_count([
+            ('res_model', '=', res_model),
+            ('res_id', '=', res_id),
+            ('description', '=', desc),
+        ])
+        if already:
+            return {'status': 'ok', 'message': 'Already attached'}
+
         attachment = request.env['ir.attachment'].sudo().create({
             'name': filename,
             'datas': base64.b64encode(image_data).decode('ascii'),
             'res_model': res_model,
             'res_id': res_id,
             'mimetype': mime_type,
-            'description': 'apertur:%s' % data.get('id', ''),
+            'description': desc,
         })
 
         # 9. Post chatter message based on mode --------------------------
