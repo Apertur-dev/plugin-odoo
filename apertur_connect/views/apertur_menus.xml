@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- Sessions entry point                                          -->
+    <!-- ============================================================ -->
+    <!--
+        The server action + menus are version-agnostic (no Odoo-version
+        specific syntax), so they live here and are NOT part of the
+        per-version overlays under versions/<ver>/.
+
+        The `apertur_session_action` window action stays in
+        apertur_session_views.xml because its `view_mode` differs per
+        Odoo version (tree,form on 16/17 vs list,form on 18/19).
+    -->
+
+    <!--
+        Sessions menu entry point. Redirects to the Apertur configuration
+        when no API key is set yet; otherwise opens the sessions list
+        (see apertur.session.action_open_sessions).
+    -->
+    <record id="apertur_session_open_action" model="ir.actions.server">
+        <field name="name">Apertur Sessions</field>
+        <field name="model_id" ref="model_apertur_session"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_sessions()</field>
+    </record>
+
+    <menuitem id="apertur_menu_root"
+              name="Apertur"
+              web_icon="apertur_connect,static/description/icon.png"
+              sequence="90"/>
+
+    <menuitem id="apertur_menu_sessions"
+              name="Sessions"
+              parent="apertur_menu_root"
+              action="apertur_session_open_action"
+              sequence="10"/>
+
+</odoo>

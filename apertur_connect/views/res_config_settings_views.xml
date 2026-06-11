@@ -115,15 +115,15 @@
                         <div class="col-12 col-lg-6 o_setting_box">
                             <div class="o_setting_left_pane"/>
                             <div class="o_setting_right_pane">
-                                <label for="apertur_enabled_models"/>
+                                <label for="apertur_enabled_model_ids"/>
                                 <div class="text-muted">
-                                    Comma-separated list of models where Apertur capture
-                                    is enabled (e.g. res.partner,project.task).
+                                    Models where Apertur capture is available.
+                                    Only models with a chatter (mail thread) are listed.
                                 </div>
                                 <div class="content-group">
                                     <div class="mt8">
-                                        <field name="apertur_enabled_models"
-                                               placeholder="res.partner"/>
+                                        <field name="apertur_enabled_model_ids"
+                                               widget="many2many_checkboxes"/>
                                     </div>
                                 </div>
                             </div>

@@ -188,7 +188,7 @@
     </record>
 
     <!-- ============================================================ -->
-    <!-- Action & Menu                                                 -->
+    <!-- Action (menus live in apertur_menus.xml)                      -->
     <!-- ============================================================ -->
 
     <record id="apertur_session_action" model="ir.actions.act_window">
@@ -206,16 +206,5 @@
             </p>
         </field>
     </record>
-
-    <menuitem id="apertur_menu_root"
-              name="Apertur"
-              web_icon="apertur_connect,static/description/icon.png"
-              sequence="90"/>
-
-    <menuitem id="apertur_menu_sessions"
-              name="Sessions"
-              parent="apertur_menu_root"
-              action="apertur_session_action"
-              sequence="10"/>
 
 </odoo>

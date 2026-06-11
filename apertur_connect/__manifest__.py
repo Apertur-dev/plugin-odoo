@@ -1,6 +1,6 @@
 {
     'name': 'Apertur Photo Collection',
-    'version': '16.0.1.0.0',
+    'version': '16.0.1.1.0',
     'category': 'Tools',
     'summary': 'Collect photos from mobile devices via QR code (Apertur).',
     'description': """
@@ -37,6 +37,7 @@ your Apertur dashboard.
         'security/ir.model.access.csv',
         'views/res_config_settings_views.xml',
         'views/apertur_session_views.xml',
+        'views/apertur_menus.xml',
         'views/res_partner_views.xml',
         'data/ir_cron.xml',
     ],

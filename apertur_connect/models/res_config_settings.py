@@ -38,12 +38,21 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='apertur.default_max_images',
         default=10,
     )
-    apertur_enabled_models = fields.Char(
+    # Stored as a comma-separated list of model technical names under the
+    # ``apertur.enabled_models`` config parameter (kept as the source of
+    # truth for backward compatibility). The Many2many here is only a UI
+    # convenience rendered as checkboxes; get_values/set_values translate
+    # between the two. The domain limits the choices to models that have a
+    # chatter (mail thread), since that is where captured photos are posted.
+    apertur_enabled_model_ids = fields.Many2many(
+        comodel_name='ir.model',
+        relation='apertur_config_enabled_model_rel',
+        column1='config_id',
+        column2='model_id',
         string='Enabled Models',
-        help='Comma-separated list of Odoo models where Apertur '
-             'capture is available (e.g. res.partner,project.task).',
-        config_parameter='apertur.enabled_models',
-        default='res.partner',
+        domain=[('is_mail_thread', '=', True)],
+        help='Models where Apertur capture is available. Only models that '
+             'have a chatter (mail thread) are listed.',
     )
     apertur_is_sandbox = fields.Boolean(
         string='Sandbox Mode',
@@ -65,6 +74,28 @@ class ResConfigSettings(models.TransientModel):
         for record in self:
             key = record.apertur_api_key or ''
             record.apertur_is_sandbox = key.startswith('aptr_test_')
+
+    @api.model
+    def get_values(self):
+        res = super().get_values()
+        ICP = self.env['ir.config_parameter'].sudo()
+        # Fresh installs (key absent) default to res.partner; an explicit
+        # empty string (user unchecked everything) stays empty.
+        raw = ICP.get_param('apertur.enabled_models', default='res.partner')
+        names = [n.strip() for n in (raw or '').split(',') if n.strip()]
+        models = (
+            self.env['ir.model'].search([('model', 'in', names)])
+            if names else self.env['ir.model']
+        )
+        res['apertur_enabled_model_ids'] = [(6, 0, models.ids)]
+        return res
+
+    def set_values(self):
+        super().set_values()
+        names = ','.join(sorted(self.apertur_enabled_model_ids.mapped('model')))
+        self.env['ir.config_parameter'].sudo().set_param(
+            'apertur.enabled_models', names,
+        )
 
     @api.model
     def get_apertur_base_url(self):
