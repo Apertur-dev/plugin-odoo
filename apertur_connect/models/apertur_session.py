@@ -398,18 +398,29 @@ class AperturSession(models.Model):
                 'Failed to refresh delivery status.\n\n%s'
             ) % exc) from exc
 
-        records = resp.json() or []
-        # Summarize: "<delivered>/<total>" and worst status wins
-        total = len(records)
+        # The endpoint returns a snapshot object:
+        #   {"status": ..., "lastChanged": ..., "files": [
+        #       {"record_id": ..., "filename": ...,
+        #        "destinations": [{"status": "sent|pending|sending|
+        #                          retrying|failed", ...}]}]}
+        payload = resp.json() or {}
+        files = payload.get('files', []) if isinstance(payload, dict) else []
+
+        # Summarize per uploaded file. A file counts as delivered as soon as
+        # any of its destinations reports "sent" (the API's success status);
+        # failed only when every destination failed; otherwise pending.
+        total = len(files)
         delivered = 0
         failed = 0
         pending = 0
-        for rec in records:
-            dests = rec.get('destinations') or []
-            status = dests[0].get('status', 'pending') if dests else 'pending'
-            if status == 'delivered':
+        for f in files:
+            dests = (f or {}).get('destinations') or []
+            statuses = [
+                d.get('status') for d in dests if isinstance(d, dict)
+            ]
+            if 'sent' in statuses:
                 delivered += 1
-            elif status == 'failed':
+            elif statuses and all(s == 'failed' for s in statuses):
                 failed += 1
             else:
                 pending += 1
@@ -432,10 +443,17 @@ class AperturSession(models.Model):
         else:
             summary = _('No images yet')
 
-        self.write({
+        vals = {
             'delivery_status': summary,
-            'delivery_details': json.dumps(records, ensure_ascii=False),
-        })
+            'delivery_details': json.dumps(payload, ensure_ascii=False),
+            # Reconcile the counter with what Apertur actually delivered, so
+            # the form reflects reality even if a webhook push was missed.
+            'image_count': delivered,
+        }
+        if self.max_images and delivered >= self.max_images \
+                and self.state == 'active':
+            vals['state'] = 'completed'
+        self.write(vals)
         return True
 
     # ------------------------------------------------------------------
