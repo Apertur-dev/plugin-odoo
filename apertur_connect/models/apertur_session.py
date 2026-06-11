@@ -549,6 +549,17 @@ class AperturSession(models.Model):
             self._post_image_to_record(target, attachment)
         return 'created'
 
+    @api.model
+    def _apertur_contact_partner_id(self, target):
+        """Resolve the partner to credit as the chatter author in
+        "contact" mode: the record itself when it is a ``res.partner``,
+        otherwise its ``partner_id`` if any. Returns an int id or False.
+        """
+        if target._name == 'res.partner':
+            return target.id
+        partner = getattr(target, 'partner_id', False)
+        return partner.id if partner else False
+
     def _post_image_to_record(self, target, attachment):
         """Post *attachment* to *target*'s chatter according to ``mode``
         (mirrors the webhook controller's behaviour).
@@ -568,12 +579,17 @@ class AperturSession(models.Model):
                 message_type='comment', subtype_xmlid='mail.mt_comment',
             )
             return
-        partner_ids = [target.id] if target._name == 'res.partner' else []
-        target.message_post(
-            body=body, attachment_ids=[attachment.id],
-            message_type='comment', subtype_xmlid='mail.mt_comment',
-            partner_ids=partner_ids,
-        )
+        # mode == 'contact': credit the contact as the message author.
+        kwargs = {
+            'body': body,
+            'attachment_ids': [attachment.id],
+            'message_type': 'comment',
+            'subtype_xmlid': 'mail.mt_comment',
+        }
+        author_id = self._apertur_contact_partner_id(target)
+        if author_id:
+            kwargs['author_id'] = author_id
+        target.message_post(**kwargs)
 
     # ------------------------------------------------------------------
     # Navigation
