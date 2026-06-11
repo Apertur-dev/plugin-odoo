@@ -359,6 +359,35 @@ class AperturSession(models.Model):
         return True
 
     # ------------------------------------------------------------------
+    # Navigation
+    # ------------------------------------------------------------------
+
+    @api.model
+    def action_open_sessions(self):
+        """Open the Apertur sessions list.
+
+        When no Apertur API key has been configured yet, redirect the
+        user to the Apertur configuration instead: sessions cannot be
+        created or delivered without a key, so landing on an empty list
+        would be a dead end.
+        """
+        api_key = self.env['ir.config_parameter'].sudo().get_param(
+            'apertur.api_key'
+        )
+        if not api_key:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('Apertur Configuration'),
+                'res_model': 'res.config.settings',
+                'view_mode': 'form',
+                'target': 'inline',
+                'context': {'module': 'apertur_connect'},
+            }
+        return self.env['ir.actions.act_window']._for_xml_id(
+            'apertur_connect.apertur_session_action'
+        )
+
+    # ------------------------------------------------------------------
     # Cron
     # ------------------------------------------------------------------
 

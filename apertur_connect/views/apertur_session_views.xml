@@ -9,7 +9,7 @@
         <field name="name">apertur.session.tree</field>
         <field name="model">apertur.session</field>
         <field name="arch" type="xml">
-            <tree string="Apertur Sessions">
+            <list string="Apertur Sessions">
                 <field name="name" string="Session"/>
                 <field name="entity_ref"/>
                 <field name="res_model" optional="hide"/>
@@ -33,7 +33,7 @@
                 <field name="created_by"/>
                 <field name="create_date"/>
                 <field name="expire_date"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -51,20 +51,20 @@
                             string="Send Link"
                             type="object"
                             class="btn-primary"
-                            attrs="{'invisible': [('state', 'not in', ['active'])]}"/>
+                            invisible="state not in ['active']"/>
                     <button name="action_refresh_delivery_status"
                             string="Refresh Status"
                             type="object"
-                            attrs="{'invisible': [('state', 'in', ['draft'])]}"/>
+                            invisible="state in ['draft']"/>
                     <button name="action_close_session"
                             string="Close Session"
                             type="object"
-                            attrs="{'invisible': [('state', 'not in', ['active', 'draft'])]}"
+                            invisible="state not in ['active', 'draft']"
                             confirm="Close this session? The upload link will no longer accept new photos."/>
                     <button name="action_expire"
                             string="Expire"
                             type="object"
-                            attrs="{'invisible': [('state', '!=', 'active')]}"
+                            invisible="state != 'active'"
                             confirm="Are you sure you want to expire this session?"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,active,completed,expired,closed"/>
@@ -74,7 +74,7 @@
                         <!-- Sandbox badge -->
                         <div class="alert alert-warning py-1 px-2 mb-2"
                              role="alert"
-                             attrs="{'invisible': [('is_sandbox', '=', False)]}">
+                             invisible="not is_sandbox">
                             <i class="fa fa-flask me-1"/>
                             <span>Sandbox mode</span>
                         </div>
@@ -116,23 +116,23 @@
                     <notebook>
                         <page string="Attachments" name="attachments">
                             <field name="attachment_ids" readonly="1">
-                                <tree>
+                                <list>
                                     <field name="name"/>
                                     <field name="mimetype"/>
                                     <field name="file_size"/>
                                     <field name="create_date"/>
                                     <field name="description"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page string="Delivery Details" name="delivery_details"
-                              attrs="{'invisible': [('delivery_details', '=', False)]}">
+                              invisible="not delivery_details">
                             <field name="delivery_details" readonly="1"
                                    widget="ace" options="{'mode': 'json'}"/>
                         </page>
                     </notebook>
                     <!-- Apertur capture widget (iframe) -->
-                    <div attrs="{'invisible': [('state', '!=', 'active')]}">
+                    <div invisible="state != 'active'">
                         <field name="name" invisible="1" class="apertur_session_uuid"/>
                         <div class="apertur_widget_container"
                              style="width:100%; min-height:480px; border:1px solid #dee2e6; border-radius:4px; overflow:hidden;">
@@ -188,13 +188,13 @@
     </record>
 
     <!-- ============================================================ -->
-    <!-- Action & Menu                                                 -->
+    <!-- Action (menus live in apertur_menus.xml)                      -->
     <!-- ============================================================ -->
 
     <record id="apertur_session_action" model="ir.actions.act_window">
         <field name="name">Apertur Sessions</field>
         <field name="res_model">apertur.session</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="apertur_session_view_search"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -206,16 +206,5 @@
             </p>
         </field>
     </record>
-
-    <menuitem id="apertur_menu_root"
-              name="Apertur"
-              web_icon="apertur_connect,static/description/icon.png"
-              sequence="90"/>
-
-    <menuitem id="apertur_menu_sessions"
-              name="Sessions"
-              parent="apertur_menu_root"
-              action="apertur_session_action"
-              sequence="10"/>
 
 </odoo>

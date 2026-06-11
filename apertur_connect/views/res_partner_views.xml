@@ -33,7 +33,7 @@
                     <group string="Active Sessions">
                         <field name="apertur_session_ids" nolabel="1"
                                readonly="1">
-                            <tree string="Sessions"
+                            <list string="Sessions"
                                   decoration-success="state == 'active'"
                                   decoration-muted="state in ('expired', 'closed')"
                                   decoration-primary="state == 'completed'">
@@ -46,7 +46,7 @@
                                 <field name="expire_date"/>
                                 <field name="upload_url" widget="url"
                                        string="Link"/>
-                            </tree>
+                            </list>
                         </field>
                     </group>
 
