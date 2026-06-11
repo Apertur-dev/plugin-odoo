@@ -224,12 +224,13 @@ class AperturWebhookController(http.Controller):
     def _post_message_for_mode(target, attachment, mode, session=None):
         """Post the image to the target's chatter according to *mode*.
 
-        - ``contact``: public comment that notifies the related partner
-          (the target itself when it is a ``res.partner``).
+        - ``contact``: public comment **authored by the contact** (the
+          record itself when it is a ``res.partner``, otherwise its
+          ``partner_id``), so the photo shows as coming from them.
         - ``internal``: internal note (``mail.mt_note``) visible only to
           followers with internal access.
         - ``public``: public comment (``mail.mt_comment``) without
-          explicit partner notification.
+          explicit author override.
         """
         body = _('<p>Photo received via Apertur</p>')
 
@@ -251,20 +252,20 @@ class AperturWebhookController(http.Controller):
             )
             return
 
-        # mode == 'contact' (default)
-        partner_ids = []
-        # If target is a partner, notify them directly. Otherwise
-        # Odoo will notify the record's followers as usual.
-        if target._name == 'res.partner':
-            partner_ids = [target.id]
-
-        target.message_post(
-            body=body,
-            attachment_ids=[attachment.id],
-            message_type='comment',
-            subtype_xmlid='mail.mt_comment',
-            partner_ids=partner_ids,
+        # mode == 'contact' (default): credit the contact as the author so
+        # the photo appears as posted by them rather than the API user.
+        kwargs = {
+            'body': body,
+            'attachment_ids': [attachment.id],
+            'message_type': 'comment',
+            'subtype_xmlid': 'mail.mt_comment',
+        }
+        author_id = target.env['apertur.session']._apertur_contact_partner_id(
+            target,
         )
+        if author_id:
+            kwargs['author_id'] = author_id
+        target.message_post(**kwargs)
 
     @staticmethod
     def _verify_signature(raw_body, signature_header, secret):
