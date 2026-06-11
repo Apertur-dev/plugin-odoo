@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 from datetime import datetime, timezone
@@ -413,17 +414,36 @@ class AperturSession(models.Model):
         delivered = 0
         failed = 0
         pending = 0
+        delivered_files = []  # (record_id, filename) to attach
         for f in files:
-            dests = (f or {}).get('destinations') or []
+            f = f or {}
+            dests = f.get('destinations') or []
             statuses = [
                 d.get('status') for d in dests if isinstance(d, dict)
             ]
             if 'sent' in statuses:
                 delivered += 1
+                if f.get('record_id'):
+                    delivered_files.append(
+                        (f['record_id'], f.get('filename')),
+                    )
             elif statuses and all(s == 'failed' for s in statuses):
                 failed += 1
             else:
                 pending += 1
+
+        # Reconcile: download + attach any delivered image that is not yet on
+        # the linked record. This covers webhook pushes that never landed
+        # (e.g. a transient download failure on the plugin side), making the
+        # button a "re-sync everything" action.
+        attached = 0
+        download_error = None
+        for record_id, filename in delivered_files:
+            result = self._ingest_delivered_image(record_id, filename)
+            if result in ('created', 'exists'):
+                attached += 1
+            elif download_error is None:
+                download_error = result  # remember the first error
 
         if failed:
             summary = _('%(failed)s failed, %(delivered)s delivered, '
@@ -443,18 +463,117 @@ class AperturSession(models.Model):
         else:
             summary = _('No images yet')
 
+        # Surface a download problem so the user understands why images are
+        # reported as delivered but not visible on the record.
+        if delivered and attached < delivered and download_error:
+            summary = _(
+                '%(summary)s — %(missing)s image(s) could not be downloaded '
+                '(%(error)s). Check the API Base URL and API key in '
+                'Settings > Apertur.'
+            ) % {
+                'summary': summary,
+                'missing': delivered - attached,
+                'error': download_error,
+            }
+
         vals = {
             'delivery_status': summary,
             'delivery_details': json.dumps(payload, ensure_ascii=False),
-            # Reconcile the counter with what Apertur actually delivered, so
-            # the form reflects reality even if a webhook push was missed.
-            'image_count': delivered,
+            # Reflect what is actually attached on the record.
+            'image_count': attached,
         }
-        if self.max_images and delivered >= self.max_images \
+        if self.max_images and attached >= self.max_images \
                 and self.state == 'active':
             vals['state'] = 'completed'
         self.write(vals)
         return True
+
+    def _ingest_delivered_image(self, record_id, filename=None):
+        """Download a delivered image from Apertur and attach it to this
+        session's linked record, unless it is already attached.
+
+        :returns: ``'created'`` when a new attachment was made, ``'exists'``
+            when one was already present, or an error message string when the
+            download/attach failed.
+        """
+        self.ensure_one()
+        if not record_id:
+            return _('missing record id')
+        if not self.res_model or not self.res_id:
+            return _('session has no linked record')
+
+        Attachment = self.env['ir.attachment'].sudo()
+        desc = 'apertur:%s' % record_id
+        existing = Attachment.search([
+            ('res_model', '=', self.res_model),
+            ('res_id', '=', self.res_id),
+            ('description', '=', desc),
+        ], limit=1)
+        if existing:
+            return 'exists'
+
+        base_url = self._get_base_url()
+        api_key = self.env['ir.config_parameter'].sudo().get_param(
+            'apertur.api_key', default='',
+        )
+        try:
+            resp = requests.get(
+                '%s/api/v1/uploads/%s/download' % (base_url, record_id),
+                headers={'Authorization': 'Bearer %s' % api_key},
+                timeout=30,
+            )
+            resp.raise_for_status()
+        except requests.RequestException as exc:
+            status = getattr(
+                getattr(exc, 'response', None), 'status_code', None,
+            )
+            _logger.warning(
+                'Apertur: download failed for %s: %s', record_id, exc,
+            )
+            return _('HTTP %s') % status if status else str(exc)
+
+        target = self.env[self.res_model].sudo().browse(self.res_id)
+        if not target.exists():
+            return _('linked record not found')
+
+        mimetype = (resp.headers.get('Content-Type') or '').split(';')[0].strip()
+        attachment = Attachment.create({
+            'name': filename or ('%s.jpg' % record_id),
+            'datas': base64.b64encode(resp.content).decode('ascii'),
+            'res_model': self.res_model,
+            'res_id': self.res_id,
+            'mimetype': mimetype or 'image/jpeg',
+            'description': desc,
+        })
+        if hasattr(target, 'message_post'):
+            self._post_image_to_record(target, attachment)
+        return 'created'
+
+    def _post_image_to_record(self, target, attachment):
+        """Post *attachment* to *target*'s chatter according to ``mode``
+        (mirrors the webhook controller's behaviour).
+        """
+        self.ensure_one()
+        body = _('<p>Photo received via Apertur</p>')
+        mode = self.mode or 'contact'
+        if mode == 'internal':
+            target.message_post(
+                body=body, attachment_ids=[attachment.id],
+                message_type='comment', subtype_xmlid='mail.mt_note',
+            )
+            return
+        if mode == 'public':
+            target.message_post(
+                body=body, attachment_ids=[attachment.id],
+                message_type='comment', subtype_xmlid='mail.mt_comment',
+            )
+            return
+        partner_ids = [target.id] if target._name == 'res.partner' else []
+        target.message_post(
+            body=body, attachment_ids=[attachment.id],
+            message_type='comment', subtype_xmlid='mail.mt_comment',
+            partner_ids=partner_ids,
+        )
 
     # ------------------------------------------------------------------
     # Navigation
