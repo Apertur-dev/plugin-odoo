@@ -662,3 +662,31 @@ class AperturSession(models.Model):
             _logger.info(
                 'Apertur: expired %d session(s).', len(expired)
             )
+
+    @api.model
+    def _cron_pull_deliveries(self):
+        """Pull delivered images from Apertur and attach them.
+
+        This is the pull-based counterpart to the webhook push and the
+        reliable path when Odoo cannot receive inbound webhooks (private
+        network / firewall). Idempotent: images already attached are
+        skipped. Only non-expired active sessions are polled, so the work
+        naturally stops once a session completes or expires.
+        """
+        if not self.env['ir.config_parameter'].sudo().get_param(
+            'apertur.api_key'
+        ):
+            return  # not configured yet
+        sessions = self.search([
+            ('state', '=', 'active'),
+            ('name', '!=', False),
+        ])
+        for session in sessions:
+            try:
+                with self.env.cr.savepoint():
+                    session.action_refresh_delivery_status()
+            except Exception as exc:  # noqa: BLE001 - isolate per session
+                _logger.warning(
+                    'Apertur: cron pull failed for session %s: %s',
+                    session.name, exc,
+                )
