@@ -1,4 +1,8 @@
+import logging
+
 from odoo import _, api, fields, models
+
+_logger = logging.getLogger(__name__)
 
 
 class ResConfigSettings(models.TransientModel):
@@ -97,10 +101,13 @@ class ResConfigSettings(models.TransientModel):
             'apertur.enabled_models', ','.join(model_names),
         )
         self._sync_apertur_capture_bindings(model_names)
+        self._sync_apertur_capture_views(model_names)
 
     # Marker stored in the generated server actions' code, so we can find and
     # refresh exactly the ones we own without touching user-made actions.
     _APERTUR_BINDING_SENTINEL = '# apertur:capture-binding'
+    # Name prefix for the dynamically generated inherited form views.
+    _APERTUR_VIEW_PREFIX = 'apertur.capture.dyn.'
 
     def _sync_apertur_capture_bindings(self, model_names):
         """Generate one "Action menu" entry per mode on every enabled model,
@@ -150,6 +157,86 @@ class ResConfigSettings(models.TransientModel):
                     'state': 'code',
                     'code': code,
                 })
+
+    def _apertur_capture_page_arch(self):
+        """Inherited-view arch adding an "Apertur" notebook page, mirroring
+        the res.partner tab. The session list uses apertur.session's own
+        list view (no inline tree/list) so the arch is Odoo-version agnostic.
+        """
+        return (
+            '<xpath expr="//notebook" position="inside">'
+            '<page string="Apertur" name="apertur_capture">'
+            '<div class="oe_button_box mb16">'
+            '<button name="action_apertur_capture_contact"'
+            ' string="Request from Contact" type="object"'
+            ' class="btn-primary" icon="fa-paper-plane"/>'
+            '<button name="action_apertur_capture_internal"'
+            ' string="Upload as Internal Note" type="object"'
+            ' class="btn-secondary" icon="fa-lock"/>'
+            '<button name="action_apertur_capture_public"'
+            ' string="Upload as Public Message" type="object"'
+            ' class="btn-secondary" icon="fa-camera"/>'
+            '</div>'
+            '<group string="Active Sessions">'
+            '<field name="apertur_session_ids" nolabel="1" readonly="1"/>'
+            '</group>'
+            '<group string="Photos">'
+            '<field name="apertur_image_count"'
+            ' string="Total photos received"/>'
+            '</group>'
+            '</page>'
+            '</xpath>'
+        )
+
+    def _sync_apertur_capture_views(self, model_names):
+        """Inject an "Apertur" notebook page into each enabled model's form,
+        like the native res.partner tab. Regenerated on every save.
+
+        Robust by design: we inherit the model's actually-rendered form view
+        and target ``//notebook``; models whose main form has no notebook (or
+        can't be resolved) are skipped with a warning — their Action-menu
+        entries still work.
+        """
+        View = self.env['ir.ui.view'].sudo()
+        prefix = self._APERTUR_VIEW_PREFIX
+
+        # Drop previously generated pages.
+        View.search([('name', '=like', prefix + '%')]).unlink()
+
+        models = self.env['ir.model'].sudo().search([
+            ('model', 'in', model_names),
+            ('is_mail_thread', '=', True),
+            ('model', '!=', 'res.partner'),
+        ])
+        arch = self._apertur_capture_page_arch()
+        for model in models:
+            # Inherit the model's main (lowest-priority primary) form view.
+            form = View.search([
+                ('model', '=', model.model),
+                ('type', '=', 'form'),
+                ('mode', '=', 'primary'),
+            ], order='priority, id', limit=1)
+            if not form:
+                _logger.warning(
+                    'Apertur: no primary form view for %s, skipping tab',
+                    model.model,
+                )
+                continue
+            parent_id = form.id
+            try:
+                with self.env.cr.savepoint():
+                    View.create({
+                        'name': '%s%s' % (prefix, model.model),
+                        'model': model.model,
+                        'inherit_id': parent_id,
+                        'priority': 99,
+                        'arch': arch,
+                    })
+            except Exception as exc:  # noqa: BLE001 - usually no <notebook>
+                _logger.warning(
+                    'Apertur: could not add tab to %s (%s)',
+                    model.model, exc,
+                )
 
     @api.model
     def get_apertur_base_url(self):
