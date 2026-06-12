@@ -12,4 +12,20 @@
         <field name="active">True</field>
     </record>
 
+    <!--
+        Pull delivered images from Apertur and attach them, for setups where
+        Odoo cannot receive the inbound webhook (private network / firewall).
+        Idempotent with the webhook push: already-attached images are skipped.
+    -->
+    <record id="ir_cron_apertur_pull_deliveries" model="ir.cron">
+        <field name="name">Apertur: Pull Delivered Images</field>
+        <field name="model_id" ref="model_apertur_session"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_pull_deliveries()</field>
+        <field name="interval_number">2</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
 </odoo>
