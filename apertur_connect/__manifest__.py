@@ -1,6 +1,6 @@
 {
     'name': 'Apertur Photo Collection',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.3.0',
     'category': 'Tools',
     'summary': 'Collect photos from mobile devices via QR code (Apertur).',
     'description': """
@@ -24,8 +24,8 @@ No data is sent to Apertur outside of the records you explicitly attach to
 a session. Your data remains yours and can be deleted at any time from
 your Apertur dashboard.
 """,
-    'author': 'Apertur',
-    'maintainer': 'Apertur',
+    'author': 'Fennix IT Solutions',
+    'maintainer': 'Fennix IT Solutions',
     'website': 'https://apertur.ca',
     'support': 'support@apertur.ca',
     'license': 'LGPL-3',
