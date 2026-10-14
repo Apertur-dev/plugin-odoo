@@ -130,6 +130,26 @@
                         </div>
                     </div>
 
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <label for="apertur_signing_secret"/>
+                                <div class="text-muted">
+                                    Optional. Only needed if your API key has request
+                                    signing enabled. When set, outgoing Apertur API
+                                    requests are signed with HMAC-SHA256.
+                                </div>
+                                <div class="content-group">
+                                    <div class="mt8">
+                                        <field name="apertur_signing_secret"
+                                               password="True"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <h3 class="mt32">Webhook Endpoint</h3>
                     <div class="row o_settings_container">
                         <div class="col-12 o_setting_box">

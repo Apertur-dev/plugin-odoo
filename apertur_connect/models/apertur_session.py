@@ -1,7 +1,11 @@
 import base64
+import hashlib
+import hmac
 import json
 import logging
+import time
 from datetime import datetime, timezone
+from urllib.parse import urlsplit
 
 import requests
 
@@ -159,6 +163,64 @@ class AperturSession(models.Model):
         """Return the resolved Apertur API base URL."""
         return self.env['res.config.settings'].get_apertur_base_url()
 
+    def _apertur_signing_secret(self):
+        """Return the configured request-signing secret, or ``''`` when
+        signing is not enabled (opt-in feature).
+        """
+        return self.env['ir.config_parameter'].sudo().get_param(
+            'apertur.signing_secret', default='',
+        )
+
+    def _apertur_signing_headers(self, method, path, body_str=b''):
+        """Return the ``X-Aptr-*`` signing headers for an Apertur API
+        request, or ``{}`` when no signing secret is configured.
+
+        :param str method: HTTP method (any case; will be upper-cased).
+        :param str path: the exact request path *as sent on the wire*,
+            including the ``/api/v1`` prefix and any query string (e.g.
+            ``/api/v1/uploads/abc?foo=bar``). Must NOT include the scheme
+            or host.
+        :param body_str: the exact serialized request body as sent on the
+            wire (``str`` or ``bytes``); empty/omitted for bodyless
+            requests.
+        """
+        secret = self._apertur_signing_secret()
+        if not secret:
+            return {}
+
+        if isinstance(body_str, str):
+            body_bytes = body_str.encode('utf-8')
+        else:
+            body_bytes = body_str or b''
+
+        timestamp = str(int(time.time()))
+        body_hash = hashlib.sha256(body_bytes).hexdigest()
+        base_string = '%s.%s.%s.%s' % (
+            timestamp, method.upper(), path, body_hash,
+        )
+        signature = hmac.new(
+            secret.encode('utf-8'),
+            base_string.encode('utf-8'),
+            hashlib.sha256,
+        ).hexdigest()
+
+        return {
+            'X-Aptr-Timestamp': timestamp,
+            'X-Aptr-Signature': 'sha256=%s' % signature,
+        }
+
+    @staticmethod
+    def _apertur_url_path(url):
+        """Return the path + query string portion of *url* (the part after
+        the scheme/host), suitable for signing (e.g.
+        ``/api/v1/uploads/abc?foo=bar``).
+        """
+        parts = urlsplit(url)
+        path = parts.path
+        if parts.query:
+            path = '%s?%s' % (path, parts.query)
+        return path
+
     # ------------------------------------------------------------------
     # Actions
     # ------------------------------------------------------------------
@@ -207,11 +269,16 @@ class AperturSession(models.Model):
             },
         }
 
+        body_str = json.dumps(payload)
+        headers = dict(headers)
+        headers.update(self._apertur_signing_headers(
+            'POST', '/api/v1/upload-sessions', body_str,
+        ))
         try:
             resp = requests.post(
                 '%s/api/v1/upload-sessions' % base_url,
                 headers=headers,
-                data=json.dumps(payload),
+                data=body_str,
                 timeout=15,
             )
             resp.raise_for_status()
@@ -384,11 +451,12 @@ class AperturSession(models.Model):
 
         base_url = self._get_base_url()
         headers = self._get_api_headers()
+        path = '/api/v1/upload-sessions/%s/delivery-status' % self.name
+        headers = dict(headers)
+        headers.update(self._apertur_signing_headers('GET', path))
         try:
             resp = requests.get(
-                '%s/api/v1/upload-sessions/%s/delivery-status' % (
-                    base_url, self.name,
-                ),
+                '%s%s' % (base_url, path),
                 headers=headers,
                 timeout=15,
             )
@@ -516,10 +584,13 @@ class AperturSession(models.Model):
         api_key = self.env['ir.config_parameter'].sudo().get_param(
             'apertur.api_key', default='',
         )
+        path = '/api/v1/uploads/%s/download' % record_id
+        headers = {'Authorization': 'Bearer %s' % api_key}
+        headers.update(self._apertur_signing_headers('GET', path))
         try:
             resp = requests.get(
-                '%s/api/v1/uploads/%s/download' % (base_url, record_id),
-                headers={'Authorization': 'Bearer %s' % api_key},
+                '%s%s' % (base_url, path),
+                headers=headers,
                 timeout=30,
             )
             resp.raise_for_status()

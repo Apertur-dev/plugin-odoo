@@ -36,6 +36,14 @@ class ResConfigSettings(models.TransientModel):
         help='Secret used to verify incoming webhook signatures.',
         config_parameter='apertur.webhook_secret',
     )
+    apertur_signing_secret = fields.Char(
+        string='Request Signing Secret',
+        help='Optional. Only needed if the configured API key has request '
+             'signing enabled. When set, every outgoing Apertur API '
+             'request is signed with HMAC-SHA256 '
+             '(X-Aptr-Timestamp / X-Aptr-Signature headers).',
+        config_parameter='apertur.signing_secret',
+    )
     apertur_default_max_images = fields.Integer(
         string='Default Max Images',
         help='Default maximum number of images per session.',
